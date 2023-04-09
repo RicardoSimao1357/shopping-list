@@ -2,6 +2,7 @@ const itemForm = document.getElementById('item-form');
 const itemInput = document.getElementById('item-input');
 const itemList = document.getElementById('item-list');
 const clearBtn = document.getElementById('clear');
+const itemFilter = document.getElementById('filter');
 
 function addItem(e) {
   e.preventDefault();
@@ -10,7 +11,7 @@ function addItem(e) {
 
   // Validate Input
   if (newItem === '') {
-    alert('Please add an item');
+    Swal.fire('Please add an item!', 'you should write something', 'warning');
     return;
   }
 
@@ -21,8 +22,10 @@ function addItem(e) {
   const button = createButton('remove-item btn-link text-red');
   li.appendChild(button);
 
+  // Add li to the DOM
   itemList.appendChild(li);
 
+  checkUI();
   itemInput.value = '';
 }
 
@@ -42,7 +45,21 @@ function createIcon(classes) {
 
 function removeItem(e) {
   if (e.target.parentElement.classList.contains('remove-item')) {
-    e.target.parentElement.parentElement.remove();
+    Swal.fire({
+      title: 'You wont to delete this item?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        e.target.parentElement.parentElement.remove();
+      }
+    });
+
+    checkUI();
   }
 }
 
@@ -50,9 +67,41 @@ function clearItems() {
   while (itemList.firstChild) {
     itemList.removeChild(itemList.firstChild);
   }
+  checkUI();
+}
+
+function filterItems(e) {
+  const items = itemList.querySelectorAll('li');
+  const text = e.target.value.toLowerCase();
+
+  items.forEach((item) => {
+    const itemName = item.firstChild.textContent.toLowerCase();
+
+    if (itemName.indexOf(text) != -1) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+
+  console.log(text);
+}
+
+function checkUI() {
+  const items = itemList.querySelectorAll('li');
+  if (items.length === 0) {
+    clearBtn.style.display = 'none';
+    itemFilter.style.display = 'none';
+  } else {
+    clearBtn.style.display = 'block';
+    itemFilter.style.display = 'block';
+  }
 }
 
 // Event Listeners
 itemForm.addEventListener('submit', addItem);
+itemFilter.addEventListener('input', filterItems);
 itemList.addEventListener('click', removeItem);
 clearBtn.addEventListener('click', clearItems);
+
+checkUI();
